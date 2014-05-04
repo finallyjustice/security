@@ -1,0 +1,37 @@
+This doc is about how to make the shell code. 
+The test environment is Ubuntu 12.04 with Linux 3.11.
+
+Contact: Dongli Zhang
+Email: dongli.zhang0129@gmail.com
+
+1. exec /bin/sh with shellcode
+(1) Compile the shellcode source: gcc shell_exec.c -o shell_exec
+(2) Find the begin and end of shellcode in shell_exec with:
+    objdump -d shell_exec | sed -n '/shell_begin/,/shell_end/p' 
+	In our code, shell_begin is 0x4bf, shell_end is 0x4dc
+(3) Compute the length of expected shellcode:
+    echo $((0x4dc-0x4bf))
+	The length is 29 and we will choose 32 which is the multiple of 8.
+(4) xxd -s0x4bf -l32 -p shell_exec shellcode 
+(5) Compile the run program with: sh compile.sh
+(6) ((cat shellcode | xxd -r -p) ; cat) | ./run_shell
+(7) Now we have a bash shell.
+
+2. call sys_exit with shellcode
+(1) Compile the shellcode source: gcc shell_exit.c -o shell_exit
+(2) Find the begin and end of shellcode in shell_exit with:
+    objdump -d shell_exit | sed -n '/shell_begin/,/shell_end/p'
+	In our code, shell_begin is 0x4bf, shell_end is 0x4cf
+(3) Compute the length of expected shellcode:
+    echo $((0x4cf-0x4bf))
+	The length is 16. We will use 16 because it is the multiple of 8.
+(4) xxd -s0x4bf -l16 -p shell_exit shellcode
+(5) Compile the run program with: sh compile.sh
+(6) ((cat shellcode | xxd -r -p) ; cat) | ./run_shell
+(7) Check the return value of the program with "echo $?"
+    The return value is 20 in the shellcode.
+
+Notes:
+1. xxd is to convert the binary to char.
+   xxd -r is to convert the char to binary.
+2. shellcode should not contain any NULL.
