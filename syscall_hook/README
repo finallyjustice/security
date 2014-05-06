@@ -1,0 +1,10 @@
+This is a module to detect if system calls are hooked.
+It has been tested on :
+- Ubuntu 12.04 with 64-bit Linux 3.9.0.
+
+For any question, please contact Dongli Zhang @ dongli.zhang0129@gmail.com.
+
+To run the template:
+
+make
+sudo sh install.sh
