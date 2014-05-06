@@ -33,25 +33,32 @@
 static struct timer_list timer_s;
 static struct workqueue_struct *wq;
 
-//static unsigned int syscall_table_size;
+static unsigned int syscall_table_size;
 static unsigned long *syscall_table_addr;
-//static unsigned long *syscall_table_shadow;
+static unsigned long *syscall_table_copy;
 
-static unsigned long *get_syscall_table(void)
+static unsigned int get_syscall_table_size(void)
 {
-	unsigned long *start;
-	printk(KERN_ALERT "CLOSE: %d\n", __NR_close);
-	printk(KERN_ALERT "sys_close: %016lx\n", (unsigned long)sys_close);
-		/*if(start[__NR_close] == (unsigned long)sys_close)
-		{
-			return start;
-		}*/
-	return NULL;
+	unsigned int size = 0;
+
+	while(syscall_table_addr[size])
+		size++;
+	return size*sizeof(unsigned long *);
 }
 
 static void check_syscall_table_handler(struct work_struct *w)
 {
-	printk(KERN_ALERT "Hello World\n");		
+	//printk(KERN_ALERT "Hello World\n");	
+	unsigned int sys_num = 0;
+
+	while(syscall_table_addr[sys_num])
+	{
+		if(syscall_table_addr[sys_num] != syscall_table_copy[sys_num])
+		{
+			printk(KERN_ALERT "ALERT: syscall hook detected on %u\n", sys_num);
+		}
+		sys_num++;
+	}
 }
 static DECLARE_DELAYED_WORK(check_syscall_table, check_syscall_table_handler);
 
@@ -70,7 +77,15 @@ static int __init hook_detect_init(void)
 {
 	printk(KERN_ALERT "init the module\n");
 
-	syscall_table_addr = get_syscall_table();
+	syscall_table_addr = (unsigned long *)0xffffffff81a001a0;
+	syscall_table_size = get_syscall_table_size();
+	syscall_table_copy = kmalloc(syscall_table_size, GFP_KERNEL);
+	if(!syscall_table_copy)
+	{
+		printk(KERN_ALERT "Failed to allocate memory for syscall table\n");
+		return -ENOMEM;
+	}
+	memcpy(syscall_table_copy, syscall_table_addr, syscall_table_size);
 
 	wq = create_singlethread_workqueue("syscall_hook_detect");
 
@@ -88,8 +103,9 @@ static void __exit hook_detect_exit(void)
 {
 	if(wq)
 		destroy_workqueue(wq);
-	//kfree(dump_syscall_table);
 	del_timer(&timer_s);
+	kfree(syscall_table_copy);
+	
 	printk(KERN_ALERT "exit the module\n");
 }
 
