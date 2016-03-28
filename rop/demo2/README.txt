@@ -1,4 +1,5 @@
 This is a demo of ROP attack with pwntools.
+Tested on Ubuntu 14.04 with Linux Linux 3.19.0-25-generic.
 
 #### Stack Layout ####
     string /bin/sh

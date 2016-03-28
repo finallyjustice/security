@@ -1,0 +1,6 @@
+# Guide of pwntools installation on Ubuntu 14.04
+	
+sudo apt-get install python-pip
+sudo pip install pwntools (proxy may be required pip --proxy=)
+sudorm -rf /usr/local/lib/python2.7/dist-packages/capstone*
+sudo pip install capstone
