@@ -1,3 +1,19 @@
+This is a demo of ROP attack with just shell script.
+
+#### Stack Layout ####
+    string /bin/sh
+----------------------
+    addr of system()
+----------------------
+    addr of /bin/sh
+----------------------
+ addr of pop rdi; ret
+----------------------
+     EBP Register
+----------------------
+     64 bytes buf
+######################
+
 1. Compile the code:
 	$ gcc -fno-stack-protector -o victim victim.c
 2. Disable ASLR: 
